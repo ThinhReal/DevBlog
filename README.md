@@ -1,5 +1,5 @@
 # 🚀 DevBlog - MERN Knowledge Manager
-A personal technical blog system built with the MERN stack and TypeScript. This Website is a place for uesr to store and keep track all their knowledge.
+A personal technical blog system built with the MERN stack and TypeScript. This Website is a place for users to store and keep track all their knowledge.
 
 Status: 🚧 Work In Progress
 

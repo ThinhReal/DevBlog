@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@theme {
+  /* 1. Định nghĩa "tên biến" và giá trị mặc định (Light Mode) */
+  --color-brand: #3b82f6;
+  --color-brand-hover: #60a5fa;
+
+  --color-main-bg: #ffffff;
+  --color-sidebar-bg: #ffffff;
+  --color-card-bg: #ffffff;
+  --color-text-main: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  /* Màu sắc cho Algorithm Card */
+  --color-easy: #16a34a;
+  --color-medium: #ca8a04;
+  --color-hard: #dc2626;
+}
+
+/* 2. Ghi đè giá trị biến khi có class .dark (NẰM NGOÀI @theme) */
+@layer base {
+  .dark {
+    --color-main-bg: #0b0f1a;      /* Màu nền tối sâu hơn theo ảnh mẫu của bạn */
+    --color-sidebar-bg: #0f172a;
+    --color-card-bg: #111827;
+    --color-text-main: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-border: #1f2937;
+  }
+
+  body {
+    @apply bg-main-bg text-text-main transition-colors duration-300;
+  }
+}

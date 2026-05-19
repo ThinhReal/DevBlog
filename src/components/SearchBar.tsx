@@ -7,7 +7,7 @@ interface SearchBarProps {
 
 export function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
   return (
-    <div className="fixed top-0 left-64 right-0 z-10 bg-black/80 backdrop-blur-xl border-b border-zinc-800/50">
+    <div className="fixed top-16 left-64 right-0 z-10 bg-black/80 backdrop-blur-xl border-b border-zinc-800/50">
       <div className="p-6">
         <div className="relative max-w-2xl">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />

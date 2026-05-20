@@ -22,14 +22,13 @@ async function seed() {
   const email = process.env.ADMIN_EMAIL ?? 'admin@devcollect.local';
   const password = process.env.ADMIN_PASSWORD ?? 'admin123';
 
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
-  if (!existingUser) {
-    const passwordHash = await bcrypt.hash(password, 12);
-    await User.create({ email: email.toLowerCase(), passwordHash });
-    console.log(`Created admin user: ${email}`);
-  } else {
-    console.log(`Admin user already exists: ${email}`);
-  }
+  const passwordHash = await bcrypt.hash(password, 12);
+  const admin = await User.findOneAndUpdate(
+    { email: email.toLowerCase() },
+    { email: email.toLowerCase(), passwordHash },
+    { upsert: true, new: true }
+  );
+  console.log(`Admin user ready: ${admin.email}`);
 
   for (const cat of defaultCategories) {
     const slug = toSlug(cat.name);

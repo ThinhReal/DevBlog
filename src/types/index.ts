@@ -12,7 +12,7 @@ export interface Category {
 }
 
 export type ContentBlock =
-  | { type: 'paragraph'; text: string }
+  | { type: 'paragraph'; text: string; keyPoint?: string }
   | { type: 'heading'; level: number; text: string }
   | { type: 'code'; language: string; code: string; runnable: boolean };
 

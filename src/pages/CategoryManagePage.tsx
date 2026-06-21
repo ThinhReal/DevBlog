@@ -9,8 +9,8 @@ import {
 } from '../api/categories';
 import { ApiError } from '../api/client';
 import type { Category } from '../types';
-
-const ICON_OPTIONS = ['Database', 'Cpu', 'Globe', 'GitBranch', 'Folder', 'LayoutGrid'];
+import { IconPicker } from '../components/IconPicker';
+import { getCategoryIcon } from '../lib/categoryIcons';
 
 export function CategoryManagePage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -74,53 +74,43 @@ export function CategoryManagePage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto w-full">
+      <Link to="/" className="inline-flex items-center gap-2 text-muted hover:text-foreground mb-6 text-sm">
         <ArrowLeft className="w-4 h-4" />
         Back
       </Link>
 
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl text-white">Manage Categories</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl text-foreground">Manage Categories</h1>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-300 text-sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 border border-accent/30 text-accent text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
           New Category
         </button>
       </div>
 
-      {error && <p className="text-red-400 mb-4">{error}</p>}
+      {error && <p className="text-danger mb-4 font-medium">{error}</p>}
 
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-8 p-6 rounded-xl border border-zinc-800 bg-zinc-950/50 space-y-4"
+          className="mb-8 p-4 sm:p-6 rounded-xl border border-border bg-input space-y-4"
         >
-          <h2 className="text-white">{editing ? 'Edit Category' : 'New Category'}</h2>
+          <h2 className="text-foreground">{editing ? 'Edit Category' : 'New Category'}</h2>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Name</label>
+            <label className="block text-sm text-muted mb-1">Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white"
+              className="w-full px-4 py-2 bg-input border border-border rounded-lg text-foreground"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Icon</label>
-            <select
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white"
-            >
-              {ICON_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+            <label className="block text-sm text-muted mb-2">Icon</label>
+            <IconPicker value={icon} onChange={setIcon} />
           </div>
           <div className="flex gap-2">
             <button
@@ -132,7 +122,7 @@ export function CategoryManagePage() {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-lg border border-zinc-700 text-gray-400 text-sm"
+              className="px-4 py-2 rounded-lg border border-border-strong text-muted text-sm"
             >
               Cancel
             </button>
@@ -141,30 +131,38 @@ export function CategoryManagePage() {
       )}
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : (
         <div className="space-y-2">
           {categories.map((cat) => (
             <div
               key={cat._id}
-              className="flex items-center justify-between p-4 rounded-xl border border-zinc-800 bg-zinc-950/30"
+              className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/80"
             >
-              <div>
-                <p className="text-white font-medium">{cat.name}</p>
-                <p className="text-xs text-gray-500">
-                  {cat.slug} · icon: {cat.icon}
-                </p>
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const Icon = getCategoryIcon(cat.icon);
+                  return (
+                    <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-card border border-border text-accent">
+                      <Icon className="w-5 h-5" />
+                    </span>
+                  );
+                })()}
+                <div>
+                  <p className="text-foreground font-medium">{cat.name}</p>
+                  <p className="text-xs text-muted">{cat.slug}</p>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => openEdit(cat)}
-                  className="p-2 text-gray-400 hover:text-white"
+                  className="p-2 text-muted hover:text-foreground"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(cat._id)}
-                  className="p-2 text-gray-400 hover:text-red-400"
+                  className="p-2 text-muted hover:text-danger"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

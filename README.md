@@ -44,7 +44,21 @@ DevCollect/
 
 ## Getting started
 
-### 1. Backend
+### Option A — one command (recommended)
+
+```bash
+cd DevCollect
+npm install
+cd server && cp .env.example .env   # first time: edit MONGODB_URI + JWT_SECRET
+cd ..
+npm run dev:all
+```
+
+Starts **API** (port 4000) and **frontend** (port 5173) together.
+
+### Option B — two terminals
+
+**Terminal 1 — Backend**
 
 ```bash
 cd server
@@ -65,6 +79,15 @@ npm run dev      # app on http://localhost:5173
 ```
 
 Open the URL and sign in with the email/password you set as `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `server/.env`.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `ECONNREFUSED` / no data loads | Start the API: `cd server && npm run dev`, or use `npm run dev:all` |
+| `querySrv ENOTFOUND` on API start | Your Atlas hostname is wrong or cluster was deleted — copy a fresh URI from [MongoDB Atlas](https://cloud.mongodb.com) |
+| Frontend on port 5174 | Normal when 5173 is busy; API proxy still works |
+| `npm run dev` fails in parent folder | Run commands inside `DevCollect/`, not `DevCollection/` |
 
 ## Environment variables (`server/.env`)
 
@@ -103,6 +126,92 @@ In `DevCollect/server/`:
 | `npm run dev` | Start API with hot reload |
 | `npm run seed` | Seed admin user and default categories |
 | `npm run build` | Compile TypeScript to `dist/` |
+
+## Deploy to Vercel
+
+The app deploys as **one Vercel project**: React frontend (static) + Express API (serverless function at `/api`).
+
+### Prerequisites
+
+1. **MongoDB Atlas** cluster (free tier is fine)
+   - Network Access → **Allow access from anywhere** (`0.0.0.0/0`) — required for Vercel
+   - Connection string must include a database name, e.g. `/devcollect`
+2. **GitHub** repo with this project pushed
+3. **Vercel** account at [vercel.com](https://vercel.com)
+
+### 1. Push code to GitHub
+
+```bash
+cd DevCollect
+git add .
+git commit -m "Prepare for Vercel deployment"
+git push origin main
+```
+
+### 2. Import project on Vercel
+
+1. Vercel Dashboard → **Add New** → **Project**
+2. Import your GitHub repository
+3. **Root Directory:** `DevCollect` (if the repo root is `DevCollection`; otherwise leave as `.`)
+4. Framework Preset: **Vite** (auto-detected)
+5. Build Command: `npm run build:vercel` (from `vercel.json`)
+6. Output Directory: `dist`
+
+### 3. Environment variables
+
+In Vercel → Project → **Settings** → **Environment Variables**, add:
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `MONGODB_URI` | `mongodb+srv://...` | Atlas URI with `/devcollect` db name |
+| `JWT_SECRET` | long random string | e.g. `openssl rand -base64 32` |
+| `JWT_EXPIRES_IN` | `7d` | optional |
+| `CORS_ORIGIN` | `https://your-app.vercel.app` | your production URL |
+| `ADMIN_EMAIL` | your email | for seeding only |
+| `ADMIN_PASSWORD` | secure password | for seeding only |
+
+Do **not** set `VITE_API_URL` on Vercel — the frontend calls `/api` on the same domain.
+
+Apply variables to **Production**, **Preview**, and **Development**.
+
+### 4. Deploy
+
+Click **Deploy**. Vercel will run `npm install`, build the server + frontend, and publish.
+
+### 5. Seed the database (first time)
+
+From your machine (with `server/.env` pointing to the **same** Atlas database):
+
+```bash
+cd server
+npm run seed
+```
+
+This creates your admin user and default categories.
+
+### 6. Verify
+
+- Open `https://your-app.vercel.app` — login page loads
+- Open `https://your-app.vercel.app/api/health` — should return `{"status":"ok"}`
+- Sign in with `ADMIN_EMAIL` / `ADMIN_PASSWORD`
+
+### Troubleshooting (production)
+
+| Problem | Fix |
+|---------|-----|
+| API 500 / health fails | Check `MONGODB_URI` and `JWT_SECRET` in Vercel env vars |
+| MongoDB timeout | Atlas → Network Access → allow `0.0.0.0/0` |
+| CORS error | Set `CORS_ORIGIN` to your exact Vercel URL (preview `*.vercel.app` works automatically) |
+| Login fails | Run `npm run seed` in `server/` against production DB |
+| Blank page on refresh | `vercel.json` SPA rewrite should handle this — redeploy if missing |
+
+### Local vs production
+
+| | Local | Vercel |
+|--|-------|--------|
+| Frontend | `npm run dev` (port 5173) | Static from `dist/` |
+| API | `npm run dev --prefix server` (port 4000) | Serverless `/api` |
+| Start both | `npm run dev:all` | N/A |
 
 ## License
 

@@ -1,10 +1,11 @@
 import type { JSX } from 'react';
 import type { ContentBlock } from '../types';
 import { CodeBlockView } from './CodeBlockView';
+import { ParagraphWithKeyPoint } from './ParagraphWithKeyPoint';
 
 export function ContentRenderer({ content }: { content: ContentBlock[] }) {
   if (!content.length) {
-    return <p className="text-gray-500">No content yet.</p>;
+    return <p className="text-muted">No content yet.</p>;
   }
 
   return (
@@ -12,15 +13,17 @@ export function ContentRenderer({ content }: { content: ContentBlock[] }) {
       {content.map((block, index) => {
         if (block.type === 'paragraph') {
           return (
-            <p key={index} className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-              {block.text}
-            </p>
+            <ParagraphWithKeyPoint
+              key={index}
+              text={block.text}
+              keyPoint={block.keyPoint}
+            />
           );
         }
         if (block.type === 'heading') {
           const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
           return (
-            <Tag key={index} className="text-white font-semibold mt-6 mb-2">
+            <Tag key={index} className="text-foreground font-semibold mt-6 mb-2">
               {block.text}
             </Tag>
           );

@@ -12,7 +12,7 @@ export function ProtectedRoute({ children, requireWrite = false }: ProtectedRout
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-gray-400">
+      <div className="min-h-screen bg-background flex items-center justify-center text-muted">
         Loading...
       </div>
     );

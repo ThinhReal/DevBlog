@@ -12,6 +12,7 @@ const contentBlockSchema = new Schema(
   {
     type: { type: String, required: true, enum: ['paragraph', 'heading', 'code'] },
     text: { type: String },
+    keyPoint: { type: String },
     level: { type: Number },
     language: { type: String },
     code: { type: String },

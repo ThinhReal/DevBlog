@@ -1,1 +1,85 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: var(--app-bg);
+  --color-foreground: var(--app-fg);
+  --color-surface: var(--app-surface);
+  --color-card: var(--app-card);
+  --color-input: var(--app-input);
+  --color-muted: var(--app-muted);
+  --color-border: var(--app-border);
+  --color-border-strong: var(--app-border-strong);
+  --color-header: var(--app-header);
+  --color-progress-track: var(--app-progress-track);
+  --color-accent: var(--app-accent);
+  --color-accent-hover: var(--app-accent-hover);
+  --color-accent-secondary: var(--app-accent-secondary);
+  --color-link: var(--app-link);
+  --color-link-hover: var(--app-link-hover);
+  --color-success: var(--app-success);
+  --color-warning: var(--app-warning);
+  --color-danger: var(--app-danger);
+  --color-danger-bg: var(--app-danger-bg);
+  --color-danger-border: var(--app-danger-border);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: #000000;
+  --app-fg: #ffffff;
+  --app-surface: #09090b;
+  --app-card: #18181b;
+  --app-input: #09090b;
+  --app-muted: #a1a1aa;
+  --app-border: rgb(39 39 42 / 0.5);
+  --app-border-strong: #3f3f46;
+  --app-header: rgb(0 0 0 / 0.8);
+  --app-progress-track: #27272a;
+  --app-accent: #60a5fa;
+  --app-accent-hover: #93c5fd;
+  --app-accent-secondary: #c084fc;
+  --app-link: #60a5fa;
+  --app-link-hover: #93c5fd;
+  --app-success: #4ade80;
+  --app-warning: #fbbf24;
+  --app-danger: #f87171;
+  --app-danger-bg: rgb(127 29 29 / 0.3);
+  --app-danger-border: rgb(127 29 29 / 0.5);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --app-bg: #f4f4f5;
+  --app-fg: #09090b;
+  --app-surface: #ffffff;
+  --app-card: #ffffff;
+  --app-input: #ffffff;
+  --app-muted: #3f3f46;
+  --app-border: #e4e4e7;
+  --app-border-strong: #a1a1aa;
+  --app-header: rgb(255 255 255 / 0.92);
+  --app-progress-track: #d4d4d8;
+  --app-accent: #2563eb;
+  --app-accent-hover: #1d4ed8;
+  --app-accent-secondary: #7c3aed;
+  --app-link: #2563eb;
+  --app-link-hover: #1e40af;
+  --app-success: #15803d;
+  --app-warning: #b45309;
+  --app-danger: #dc2626;
+  --app-danger-bg: rgb(220 38 38 / 0.08);
+  --app-danger-border: rgb(220 38 38 / 0.28);
+}
+
+html,
+body {
+  background-color: var(--app-bg);
+  color: var(--app-fg);
+  overflow-x: hidden;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #71717a;
+  opacity: 1;
+}

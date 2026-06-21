@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "check": "tsx scripts/check-mongo.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/scripts/seed.ts"

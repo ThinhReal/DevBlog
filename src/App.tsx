@@ -1,24 +1,36 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
+import { ApiConnectionBanner } from './components/ApiConnectionBanner';
 import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { BlogEditorPage } from './pages/BlogEditorPage';
 import { CategoryManagePage } from './pages/CategoryManagePage';
 import { fetchCategories } from './api/categories';
+import { checkApiHealth } from './api/health';
+import { getErrorMessage } from './api/client';
 import type { Category } from './types';
 
 function AuthenticatedLayout() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All Topics');
+  const [apiError, setApiError] = useState('');
 
   const loadCategories = () => {
-    fetchCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
+    checkApiHealth()
+      .then(() => fetchCategories())
+      .then((cats) => {
+        setCategories(cats);
+        setApiError('');
+      })
+      .catch((err) => {
+        setCategories([]);
+        setApiError(getErrorMessage(err, 'Failed to load data from API'));
+      });
   };
 
   useEffect(() => {
@@ -32,18 +44,22 @@ function AuthenticatedLayout() {
   }, []);
 
   return (
-    <Layout
-      categories={categories}
-      selectedCategory={selectedCategory}
-      onSelectCategory={setSelectedCategory}
-    />
+    <>
+      {apiError && <ApiConnectionBanner message={apiError} />}
+      <Layout
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+    </>
   );
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -82,7 +98,8 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

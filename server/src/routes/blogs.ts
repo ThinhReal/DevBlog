@@ -14,7 +14,7 @@ const sourceLinkSchema = z.object({
 });
 
 const contentBlockSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('paragraph'), text: z.string() }),
+  z.object({ type: z.literal('paragraph'), text: z.string(), keyPoint: z.string().optional() }),
   z.object({
     type: z.literal('heading'),
     level: z.number().int().min(1).max(6),

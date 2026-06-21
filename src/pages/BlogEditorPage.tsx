@@ -7,10 +7,28 @@ import type { Category, ContentBlock, SourceLink } from '../types';
 
 const emptySourceLink = (): SourceLink => ({ label: '', url: '' });
 
-const emptyParagraph = (): ContentBlock => ({ type: 'paragraph', text: '' });
+const emptyParagraph = (): ContentBlock => ({ type: 'paragraph', text: '', keyPoint: '' });
+const CODE_LANGUAGES = [
+  { value: 'java', label: 'Java' },
+  { value: 'python', label: 'Python' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'sql', label: 'SQL' },
+  { value: 'bash', label: 'Bash' },
+] as const;
+
+const CODE_PLACEHOLDERS: Record<string, string> = {
+  java: `public class Hello {
+  public static void main(String[] args) {
+    System.out.println("Hello, world!");
+  }
+}`,
+  python: `print("Hello, world!")`,
+};
+
 const emptyCode = (): ContentBlock => ({
   type: 'code',
-  language: 'python',
+  language: 'java',
   code: '',
   runnable: false,
 });
@@ -108,41 +126,41 @@ export function BlogEditorPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-gray-400">Loading...</div>;
+    return <div className="p-4 sm:p-6 lg:p-8 text-muted">Loading...</div>;
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
       <Link
         to={isEdit && id ? `/blogs/${id}` : '/'}
-        className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm"
+        className="inline-flex items-center gap-2 text-muted hover:text-foreground mb-6 text-sm"
       >
         <ArrowLeft className="w-4 h-4" />
         Cancel
       </Link>
 
-      <h1 className="text-3xl text-white mb-8">{isEdit ? 'Edit Blog' : 'Create Blog'}</h1>
+      <h1 className="text-2xl sm:text-3xl text-foreground mb-6 sm:mb-8">{isEdit ? 'Edit Blog' : 'Create Blog'}</h1>
 
-      {error && <p className="text-red-400 mb-4">{error}</p>}
+      {error && <p className="text-danger mb-4 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <section className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Title</label>
+            <label className="block text-sm text-muted mb-1">Title</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground"
               required
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Category</label>
+              <label className="block text-sm text-muted mb-1">Category</label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+                className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground"
                 required
               >
                 {categories.map((c) => (
@@ -153,7 +171,7 @@ export function BlogEditorPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Progress ({progress}%)</label>
+              <label className="block text-sm text-muted mb-1">Progress ({progress}%)</label>
               <input
                 type="range"
                 min={0}
@@ -165,40 +183,40 @@ export function BlogEditorPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Summary</label>
+            <label className="block text-sm text-muted mb-1">Summary</label>
             <textarea
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               rows={3}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Tags (comma-separated)</label>
+            <label className="block text-sm text-muted mb-1">Tags (comma-separated)</label>
             <input
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="React, TypeScript, Python"
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white"
+              className="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground"
             />
           </div>
         </section>
 
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg text-white">Source Links</h2>
+            <h2 className="text-lg text-foreground">Source Links</h2>
             <button
               type="button"
               onClick={() => setSourceLinks([...sourceLinks, emptySourceLink()])}
-              className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+              className="flex items-center gap-1 text-sm text-link hover:text-link-hover font-medium"
             >
               <Plus className="w-4 h-4" /> Add link
             </button>
           </div>
           <div className="space-y-3">
             {sourceLinks.map((link, i) => (
-              <div key={i} className="flex gap-2">
+              <div key={i} className="flex flex-col sm:flex-row gap-2">
                 <input
                   value={link.label}
                   onChange={(e) => {
@@ -207,7 +225,7 @@ export function BlogEditorPage() {
                     setSourceLinks(updated);
                   }}
                   placeholder="Label"
-                  className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white text-sm"
+                  className="flex-1 px-3 py-2 bg-input border border-border rounded-lg text-foreground text-sm"
                 />
                 <input
                   value={link.url}
@@ -218,12 +236,12 @@ export function BlogEditorPage() {
                   }}
                   placeholder="https://..."
                   type="url"
-                  className="flex-[2] px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-white text-sm"
+                  className="sm:flex-[2] w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setSourceLinks(sourceLinks.filter((_, j) => j !== i))}
-                  className="p-2 text-gray-500 hover:text-red-400"
+                  className="p-2 text-muted hover:text-danger"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -233,20 +251,20 @@ export function BlogEditorPage() {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg text-white">Content Blocks</h2>
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+            <h2 className="text-lg text-foreground">Content Blocks</h2>
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setContent([...content, emptyParagraph()])}
-                className="text-sm px-3 py-1 rounded border border-zinc-700 text-gray-300 hover:text-white"
+                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
               >
                 + Paragraph
               </button>
               <button
                 type="button"
                 onClick={() => setContent([...content, emptyCode()])}
-                className="text-sm px-3 py-1 rounded border border-zinc-700 text-gray-300 hover:text-white"
+                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
               >
                 + Code
               </button>
@@ -255,7 +273,7 @@ export function BlogEditorPage() {
                 onClick={() =>
                   setContent([...content, { type: 'heading', level: 2, text: '' }])
                 }
-                className="text-sm px-3 py-1 rounded border border-zinc-700 text-gray-300 hover:text-white"
+                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
               >
                 + Heading
               </button>
@@ -266,31 +284,47 @@ export function BlogEditorPage() {
             {content.map((block, index) => (
               <div
                 key={index}
-                className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/50 space-y-3"
+                className="p-4 rounded-xl border border-border bg-input/50 space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase text-gray-500">{block.type}</span>
+                  <span className="text-xs uppercase text-muted">{block.type}</span>
                   <div className="flex gap-1">
-                    <button type="button" onClick={() => moveBlock(index, -1)} className="p-1 text-gray-500 hover:text-white">
+                    <button type="button" onClick={() => moveBlock(index, -1)} className="p-1 text-muted hover:text-foreground">
                       <ChevronUp className="w-4 h-4" />
                     </button>
-                    <button type="button" onClick={() => moveBlock(index, 1)} className="p-1 text-gray-500 hover:text-white">
+                    <button type="button" onClick={() => moveBlock(index, 1)} className="p-1 text-muted hover:text-foreground">
                       <ChevronDown className="w-4 h-4" />
                     </button>
-                    <button type="button" onClick={() => removeBlock(index)} className="p-1 text-gray-500 hover:text-red-400">
+                    <button type="button" onClick={() => removeBlock(index)} className="p-1 text-muted hover:text-danger">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 {block.type === 'paragraph' && (
-                  <textarea
-                    value={block.text}
-                    onChange={(e) => updateBlock(index, { ...block, text: e.target.value })}
-                    rows={4}
-                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm"
-                    placeholder="Write your content..."
-                  />
+                  <div className="space-y-3">
+                    <textarea
+                      value={block.text}
+                      onChange={(e) => updateBlock(index, { ...block, text: e.target.value })}
+                      rows={4}
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
+                      placeholder="Write your content..."
+                    />
+                    <div>
+                      <label className="block text-xs text-muted font-medium mb-1">
+                        Key point <span className="font-normal">(shown on hover when reading)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={block.keyPoint ?? ''}
+                        onChange={(e) =>
+                          updateBlock(index, { ...block, keyPoint: e.target.value })
+                        }
+                        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
+                        placeholder="Main takeaway for this paragraph..."
+                      />
+                    </div>
+                  </div>
                 )}
 
                 {block.type === 'heading' && (
@@ -300,7 +334,7 @@ export function BlogEditorPage() {
                       onChange={(e) =>
                         updateBlock(index, { ...block, level: Number(e.target.value) })
                       }
-                      className="px-2 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm"
+                      className="px-2 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
                     >
                       {[1, 2, 3, 4, 5, 6].map((n) => (
                         <option key={n} value={n}>
@@ -311,39 +345,56 @@ export function BlogEditorPage() {
                     <input
                       value={block.text}
                       onChange={(e) => updateBlock(index, { ...block, text: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm"
+                      className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
                     />
                   </div>
                 )}
 
                 {block.type === 'code' && (
                   <>
-                    <div className="flex gap-4 items-center">
-                      <input
+                    <div className="flex gap-4 items-center flex-wrap">
+                      <select
                         value={block.language}
-                        onChange={(e) =>
-                          updateBlock(index, { ...block, language: e.target.value })
-                        }
-                        placeholder="Language"
-                        className="w-32 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm"
-                      />
-                      <label className="flex items-center gap-2 text-sm text-gray-400">
-                        <input
-                          type="checkbox"
-                          checked={block.runnable}
-                          onChange={(e) =>
-                            updateBlock(index, { ...block, runnable: e.target.checked })
-                          }
-                        />
-                        Runnable (Python in browser)
-                      </label>
+                        onChange={(e) => {
+                          const language = e.target.value;
+                          updateBlock(index, {
+                            ...block,
+                            language,
+                            runnable: language === 'python' ? block.runnable : false,
+                          });
+                        }}
+                        className="px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
+                      >
+                        {!CODE_LANGUAGES.some((l) => l.value === block.language) && (
+                          <option value={block.language}>{block.language}</option>
+                        )}
+                        {CODE_LANGUAGES.map(({ value, label }) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      {block.language === 'python' && (
+                        <label className="flex items-center gap-2 text-sm text-muted">
+                          <input
+                            type="checkbox"
+                            checked={block.runnable}
+                            onChange={(e) =>
+                              updateBlock(index, { ...block, runnable: e.target.checked })
+                            }
+                          />
+                          Runnable (Python in browser)
+                        </label>
+                      )}
                     </div>
                     <textarea
                       value={block.code}
                       onChange={(e) => updateBlock(index, { ...block, code: e.target.value })}
                       rows={8}
-                      className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm font-mono"
-                      placeholder="print('Hello, world!')"
+                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm font-mono"
+                      placeholder={
+                        CODE_PLACEHOLDERS[block.language] ?? '// Your code here'
+                      }
                     />
                   </>
                 )}

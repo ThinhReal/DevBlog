@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => {
         localStorage.removeItem('token');
         setUser(null);
+        setIsGuest(localStorage.getItem(GUEST_FLAG) === '1');
       })
       .finally(() => setLoading(false));
   }, []);

@@ -31,14 +31,14 @@ export function BlogDetailPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-gray-400">Loading...</div>;
+    return <div className="p-4 sm:p-6 lg:p-8 text-muted">Loading...</div>;
   }
 
   if (error || !blog) {
     return (
-      <div className="p-8">
-        <p className="text-red-400">{error || 'Blog not found'}</p>
-        <Link to="/" className="text-blue-400 mt-4 inline-block">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <p className="text-danger">{error || 'Blog not found'}</p>
+        <Link to="/" className="text-link hover:text-link-hover mt-4 inline-block font-medium">
           Back to home
         </Link>
       </div>
@@ -46,32 +46,32 @@ export function BlogDetailPage() {
   }
 
   return (
-    <article className="p-8 max-w-4xl">
-      <Link to="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 text-sm">
+    <article className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
+      <Link to="/" className="inline-flex items-center gap-2 text-muted hover:text-foreground mb-4 sm:mb-6 text-sm">
         <ArrowLeft className="w-4 h-4" />
         Back
       </Link>
 
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <p className="text-blue-400 text-sm uppercase tracking-wider mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div className="min-w-0">
+          <p className="text-accent text-sm uppercase tracking-wider mb-2 font-medium">
             {getCategoryName(blog)}
           </p>
-          <h1 className="text-4xl text-white mb-3">{blog.title}</h1>
-          <p className="text-gray-400">{blog.summary}</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl text-foreground mb-3 break-words">{blog.title}</h1>
+          <p className="text-muted">{blog.summary}</p>
         </div>
         {canWrite && (
           <div className="flex gap-2 shrink-0">
             <Link
               to={`/blogs/${blog._id}/edit`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:text-white"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-border-strong text-muted hover:text-foreground text-sm"
             >
               <Pencil className="w-4 h-4" />
               Edit
             </Link>
             <button
               onClick={handleDelete}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-900/50 text-red-400 hover:bg-red-950/30"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border border-danger-border text-danger hover:bg-danger-bg text-sm font-medium"
             >
               <Trash2 className="w-4 h-4" />
               Delete
@@ -85,7 +85,7 @@ export function BlogDetailPage() {
           {blog.tags.map((tag) => (
             <span
               key={tag}
-              className="px-3 py-1 rounded-full text-xs border border-purple-500/30 bg-purple-500/10 text-purple-300"
+              className="px-3 py-1 rounded-full text-xs border border-accent-secondary/30 bg-accent-secondary/10 text-accent-secondary font-medium"
             >
               {tag}
             </span>
@@ -94,11 +94,11 @@ export function BlogDetailPage() {
       )}
 
       <div className="mb-8">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
+        <div className="flex justify-between text-xs text-muted mb-1">
           <span>Progress</span>
           <span>{blog.progress}%</span>
         </div>
-        <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-progress-track rounded-full overflow-hidden">
           <div
             className="h-full bg-linear-to-r from-blue-500 to-purple-600 rounded-full"
             style={{ width: `${blog.progress}%` }}
@@ -108,7 +108,7 @@ export function BlogDetailPage() {
 
       {blog.sourceLinks.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-lg text-white mb-3">Sources</h2>
+          <h2 className="text-lg text-foreground mb-3">Sources</h2>
           <ul className="space-y-2">
             {blog.sourceLinks.map((link, i) => (
               <li key={i}>
@@ -116,7 +116,7 @@ export function BlogDetailPage() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300"
+                  className="inline-flex items-center gap-2 text-link hover:text-link-hover font-medium"
                 >
                   {link.label}
                   <ExternalLink className="w-3 h-3" />
@@ -128,7 +128,7 @@ export function BlogDetailPage() {
       )}
 
       <section>
-        <h2 className="text-lg text-white mb-4">Content</h2>
+        <h2 className="text-lg text-foreground mb-4">Content</h2>
         <ContentRenderer content={blog.content} />
       </section>
     </article>

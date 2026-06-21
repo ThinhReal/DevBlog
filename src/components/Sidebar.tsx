@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { Category } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
   categories: Category[];
@@ -32,6 +33,7 @@ function CategoryIcon({ name }: { name: string }) {
 
 export function Sidebar({ categories, selectedCategory, onSelectCategory }: SidebarProps) {
   const navItems = ['All Topics', ...categories.map((c) => c.name)];
+  const { canWrite } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-zinc-950 border-r border-zinc-800/50 backdrop-blur-xl">
@@ -81,14 +83,16 @@ export function Sidebar({ categories, selectedCategory, onSelectCategory }: Side
           })}
         </nav>
 
-        <div className="mt-6">
-          <Link
-            to="/categories/manage"
-            className="block text-center text-xs text-gray-500 hover:text-blue-400 transition-colors"
-          >
-            Manage categories
-          </Link>
-        </div>
+        {canWrite && (
+          <div className="mt-6">
+            <Link
+              to="/categories/manage"
+              className="block text-center text-xs text-gray-500 hover:text-blue-400 transition-colors"
+            >
+              Manage categories
+            </Link>
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -3,12 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { fetchBlog, deleteBlog } from '../api/blogs';
 import { ContentRenderer } from '../components/ContentRenderer';
+import { useAuth } from '../context/AuthContext';
 import type { Blog } from '../types';
 import { getCategoryName } from '../types';
 
 export function BlogDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { canWrite } = useAuth();
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -58,22 +60,24 @@ export function BlogDetailPage() {
           <h1 className="text-4xl text-white mb-3">{blog.title}</h1>
           <p className="text-gray-400">{blog.summary}</p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <Link
-            to={`/blogs/${blog._id}/edit`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:text-white"
-          >
-            <Pencil className="w-4 h-4" />
-            Edit
-          </Link>
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-900/50 text-red-400 hover:bg-red-950/30"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
+        {canWrite && (
+          <div className="flex gap-2 shrink-0">
+            <Link
+              to={`/blogs/${blog._id}/edit`}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-gray-300 hover:text-white"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit
+            </Link>
+            <button
+              onClick={handleDelete}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-900/50 text-red-400 hover:bg-red-950/30"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </button>
+          </div>
+        )}
       </div>
 
       {blog.tags.length > 0 && (

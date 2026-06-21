@@ -6,7 +6,6 @@ import { requireAuth } from '../middleware/auth.js';
 import { toSlug } from '../utils/slug.js';
 
 const router = Router();
-router.use(requireAuth);
 
 const createSchema = z.object({
   name: z.string().min(1).max(100),
@@ -27,7 +26,7 @@ router.get('/', async (_req, res) => {
   res.json(categories);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.flatten() });
@@ -54,7 +53,7 @@ router.post('/', async (req, res) => {
   res.status(201).json(category);
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   const parsed = updateSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.flatten() });
@@ -84,7 +83,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   const category = await Category.findById(req.params.id);
   if (!category) {
     res.status(404).json({ error: 'Category not found' });

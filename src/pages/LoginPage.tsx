@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ApiError } from '../api/client';
 
 export function LoginPage() {
-  const { user, login } = useAuth();
+  const { isAuthenticated, login, loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
@@ -16,8 +16,13 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  if (user) {
+  if (isAuthenticated) {
     return <Navigate to={from} replace />;
+  }
+
+  function handleGuest() {
+    loginAsGuest();
+    navigate('/', { replace: true });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -83,6 +88,24 @@ export function LoginPage() {
             {submitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-xs uppercase tracking-wider text-gray-500">or</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGuest}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-lg border border-zinc-700 text-gray-300 hover:text-white hover:bg-zinc-900 transition-colors"
+        >
+          <UserRound className="w-4 h-4" />
+          Continue as guest (read-only)
+        </button>
+        <p className="text-xs text-gray-500 text-center mt-3">
+          Browse blogs and categories without an account. You won't be able to create, edit, or delete.
+        </p>
       </div>
     </div>
   );

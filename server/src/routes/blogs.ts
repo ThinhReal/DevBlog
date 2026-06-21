@@ -7,7 +7,6 @@ import { requireAuth } from '../middleware/auth.js';
 import { toSlug } from '../utils/slug.js';
 
 const router = Router();
-router.use(requireAuth);
 
 const sourceLinkSchema = z.object({
   label: z.string().min(1),
@@ -94,7 +93,7 @@ router.get('/:id', async (req, res) => {
   res.json(blog);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const parsed = blogBodySchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.flatten() });
@@ -129,8 +128,9 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+router.put('/:id', requireAuth, async (req, res) => {
+  const id = String(req.params.id);
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400).json({ error: 'Invalid blog id' });
     return;
   }
@@ -141,7 +141,7 @@ router.put('/:id', async (req, res) => {
     return;
   }
 
-  const blog = await Blog.findById(req.params.id);
+  const blog = await Blog.findById(id);
   if (!blog) {
     res.status(404).json({ error: 'Blog not found' });
     return;
@@ -184,13 +184,14 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+router.delete('/:id', requireAuth, async (req, res) => {
+  const id = String(req.params.id);
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400).json({ error: 'Invalid blog id' });
     return;
   }
 
-  const blog = await Blog.findByIdAndDelete(req.params.id);
+  const blog = await Blog.findByIdAndDelete(id);
   if (!blog) {
     res.status(404).json({ error: 'Blog not found' });
     return;

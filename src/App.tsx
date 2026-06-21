@@ -54,10 +54,31 @@ export default function App() {
             }
           >
             <Route index element={<HomePage />} />
-            <Route path="blogs/new" element={<BlogEditorPage />} />
+            <Route
+              path="blogs/new"
+              element={
+                <ProtectedRoute requireWrite>
+                  <BlogEditorPage />
+                </ProtectedRoute>
+              }
+            />
             <Route path="blogs/:id" element={<BlogDetailPage />} />
-            <Route path="blogs/:id/edit" element={<BlogEditorPage />} />
-            <Route path="categories/manage" element={<CategoryManagePage />} />
+            <Route
+              path="blogs/:id/edit"
+              element={
+                <ProtectedRoute requireWrite>
+                  <BlogEditorPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="categories/manage"
+              element={
+                <ProtectedRoute requireWrite>
+                  <CategoryManagePage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

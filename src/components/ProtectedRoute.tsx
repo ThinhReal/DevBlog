@@ -1,8 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireWrite?: boolean;
+}
+
+export function ProtectedRoute({ children, requireWrite = false }: ProtectedRouteProps) {
+  const { isAuthenticated, canWrite, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -13,8 +18,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireWrite && !canWrite) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

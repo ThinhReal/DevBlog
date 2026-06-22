@@ -1,30 +1,21 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Code2, Heading, Type } from 'lucide-react';
 import { createBlog, fetchBlog, updateBlog } from '../api/blogs';
 import { fetchCategories } from '../api/categories';
+import { AddBlockButton } from '../components/AddBlockButton';
+import { SortableContentBlocks } from '../components/SortableContentBlocks';
+import {
+  fromEditorBlock,
+  toEditorBlock,
+  toEditorBlocks,
+  type EditorBlock,
+} from '../lib/editorBlocks';
 import type { Category, ContentBlock, SourceLink } from '../types';
 
 const emptySourceLink = (): SourceLink => ({ label: '', url: '' });
 
 const emptyParagraph = (): ContentBlock => ({ type: 'paragraph', text: '', keyPoint: '' });
-const CODE_LANGUAGES = [
-  { value: 'java', label: 'Java' },
-  { value: 'python', label: 'Python' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'sql', label: 'SQL' },
-  { value: 'bash', label: 'Bash' },
-] as const;
-
-const CODE_PLACEHOLDERS: Record<string, string> = {
-  java: `public class Hello {
-  public static void main(String[] args) {
-    System.out.println("Hello, world!");
-  }
-}`,
-  python: `print("Hello, world!")`,
-};
 
 const emptyCode = (): ContentBlock => ({
   type: 'code',
@@ -45,10 +36,36 @@ export function BlogEditorPage() {
   const [tagsInput, setTagsInput] = useState('');
   const [progress, setProgress] = useState(0);
   const [sourceLinks, setSourceLinks] = useState<SourceLink[]>([emptySourceLink()]);
-  const [content, setContent] = useState<ContentBlock[]>([emptyParagraph()]);
+  const [content, setContent] = useState<EditorBlock[]>([toEditorBlock(emptyParagraph())]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [clickedAdd, setClickedAdd] = useState<string | null>(null);
+  const [clickedAddLink, setClickedAddLink] = useState(false);
+  const contentEndRef = useRef<HTMLDivElement>(null);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addLinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function flashAddButton(key: string) {
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    setClickedAdd(key);
+    clickTimeoutRef.current = setTimeout(() => setClickedAdd(null), 450);
+  }
+
+  function addContentBlock(block: ContentBlock) {
+    setContent((prev) => [...prev, toEditorBlock(block)]);
+    flashAddButton(block.type);
+    requestAnimationFrame(() => {
+      contentEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  function addSourceLink() {
+    setSourceLinks((prev) => [...prev, emptySourceLink()]);
+    if (addLinkTimeoutRef.current) clearTimeout(addLinkTimeoutRef.current);
+    setClickedAddLink(true);
+    addLinkTimeoutRef.current = setTimeout(() => setClickedAddLink(false), 450);
+  }
 
   useEffect(() => {
     fetchCategories().then((cats) => {
@@ -69,28 +86,13 @@ export function BlogEditorPage() {
         setTagsInput(blog.tags.join(', '));
         setProgress(blog.progress);
         setSourceLinks(blog.sourceLinks.length ? blog.sourceLinks : [emptySourceLink()]);
-        setContent(blog.content.length ? blog.content : [emptyParagraph()]);
+        setContent(
+          blog.content.length ? toEditorBlocks(blog.content) : [toEditorBlock(emptyParagraph())]
+        );
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false));
   }, [id]);
-
-  function moveBlock(index: number, direction: -1 | 1) {
-    const next = index + direction;
-    if (next < 0 || next >= content.length) return;
-    const updated = [...content];
-    [updated[index], updated[next]] = [updated[next], updated[index]];
-    setContent(updated);
-  }
-
-  function updateBlock(index: number, block: ContentBlock) {
-    setContent(content.map((b, i) => (i === index ? block : b)));
-  }
-
-  function removeBlock(index: number) {
-    if (content.length <= 1) return;
-    setContent(content.filter((_, i) => i !== index));
-  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -106,12 +108,14 @@ export function BlogEditorPage() {
         .map((t) => t.trim())
         .filter(Boolean),
       progress,
-      content: content.filter((b) => {
-        if (b.type === 'paragraph') return b.text.trim();
-        if (b.type === 'heading') return b.text.trim();
-        if (b.type === 'code') return b.code.trim();
-        return false;
-      }),
+      content: content
+        .map(fromEditorBlock)
+        .filter((b) => {
+          if (b.type === 'paragraph') return b.text.trim();
+          if (b.type === 'heading') return b.text.trim();
+          if (b.type === 'code') return b.code.trim();
+          return false;
+        }),
       sourceLinks: sourceLinks.filter((l) => l.label.trim() && l.url.trim()),
     };
 
@@ -139,7 +143,9 @@ export function BlogEditorPage() {
         Cancel
       </Link>
 
-      <h1 className="text-2xl sm:text-3xl text-foreground mb-6 sm:mb-8">{isEdit ? 'Edit Blog' : 'Create Blog'}</h1>
+      <h1 className="text-2xl sm:text-3xl text-foreground mb-6 sm:mb-8">
+        {isEdit ? 'Edit Blog' : 'Create Blog'}
+      </h1>
 
       {error && <p className="text-danger mb-4 font-medium">{error}</p>}
 
@@ -204,16 +210,7 @@ export function BlogEditorPage() {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg text-foreground">Source Links</h2>
-            <button
-              type="button"
-              onClick={() => setSourceLinks([...sourceLinks, emptySourceLink()])}
-              className="flex items-center gap-1 text-sm text-link hover:text-link-hover font-medium"
-            >
-              <Plus className="w-4 h-4" /> Add link
-            </button>
-          </div>
+          <h2 className="text-lg text-foreground mb-4">Source Links</h2>
           <div className="space-y-3">
             {sourceLinks.map((link, i) => (
               <div key={i} className="flex flex-col sm:flex-row gap-2">
@@ -248,159 +245,47 @@ export function BlogEditorPage() {
               </div>
             ))}
           </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <AddBlockButton
+              label="Add link"
+              icon={<Plus className="w-4 h-4" />}
+              active={clickedAddLink}
+              onClick={addSourceLink}
+            />
+          </div>
         </section>
 
         <section>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-            <h2 className="text-lg text-foreground">Content Blocks</h2>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setContent([...content, emptyParagraph()])}
-                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
-              >
-                + Paragraph
-              </button>
-              <button
-                type="button"
-                onClick={() => setContent([...content, emptyCode()])}
-                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
-              >
-                + Code
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  setContent([...content, { type: 'heading', level: 2, text: '' }])
-                }
-                className="text-sm px-3 py-1 rounded border border-border-strong text-muted hover:text-foreground"
-              >
-                + Heading
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {content.map((block, index) => (
-              <div
-                key={index}
-                className="p-4 rounded-xl border border-border bg-input/50 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase text-muted">{block.type}</span>
-                  <div className="flex gap-1">
-                    <button type="button" onClick={() => moveBlock(index, -1)} className="p-1 text-muted hover:text-foreground">
-                      <ChevronUp className="w-4 h-4" />
-                    </button>
-                    <button type="button" onClick={() => moveBlock(index, 1)} className="p-1 text-muted hover:text-foreground">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <button type="button" onClick={() => removeBlock(index)} className="p-1 text-muted hover:text-danger">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {block.type === 'paragraph' && (
-                  <div className="space-y-3">
-                    <textarea
-                      value={block.text}
-                      onChange={(e) => updateBlock(index, { ...block, text: e.target.value })}
-                      rows={4}
-                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
-                      placeholder="Write your content..."
-                    />
-                    <div>
-                      <label className="block text-xs text-muted font-medium mb-1">
-                        Key point <span className="font-normal">(shown on hover when reading)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={block.keyPoint ?? ''}
-                        onChange={(e) =>
-                          updateBlock(index, { ...block, keyPoint: e.target.value })
-                        }
-                        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
-                        placeholder="Main takeaway for this paragraph..."
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {block.type === 'heading' && (
-                  <div className="flex gap-2">
-                    <select
-                      value={block.level}
-                      onChange={(e) =>
-                        updateBlock(index, { ...block, level: Number(e.target.value) })
-                      }
-                      className="px-2 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
-                    >
-                      {[1, 2, 3, 4, 5, 6].map((n) => (
-                        <option key={n} value={n}>
-                          H{n}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      value={block.text}
-                      onChange={(e) => updateBlock(index, { ...block, text: e.target.value })}
-                      className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
-                    />
-                  </div>
-                )}
-
-                {block.type === 'code' && (
-                  <>
-                    <div className="flex gap-4 items-center flex-wrap">
-                      <select
-                        value={block.language}
-                        onChange={(e) => {
-                          const language = e.target.value;
-                          updateBlock(index, {
-                            ...block,
-                            language,
-                            runnable: language === 'python' ? block.runnable : false,
-                          });
-                        }}
-                        className="px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm"
-                      >
-                        {!CODE_LANGUAGES.some((l) => l.value === block.language) && (
-                          <option value={block.language}>{block.language}</option>
-                        )}
-                        {CODE_LANGUAGES.map(({ value, label }) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-                      {block.language === 'python' && (
-                        <label className="flex items-center gap-2 text-sm text-muted">
-                          <input
-                            type="checkbox"
-                            checked={block.runnable}
-                            onChange={(e) =>
-                              updateBlock(index, { ...block, runnable: e.target.checked })
-                            }
-                          />
-                          Runnable (Python in browser)
-                        </label>
-                      )}
-                    </div>
-                    <textarea
-                      value={block.code}
-                      onChange={(e) => updateBlock(index, { ...block, code: e.target.value })}
-                      rows={8}
-                      className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground text-sm font-mono"
-                      placeholder={
-                        CODE_PLACEHOLDERS[block.language] ?? '// Your code here'
-                      }
-                    />
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
+          <h2 className="text-lg text-foreground mb-4">Content Blocks</h2>
+          <SortableContentBlocks
+            blocks={content}
+            onChange={setContent}
+            listEndRef={contentEndRef}
+            addButtons={
+              <>
+                <AddBlockButton
+                  label="Paragraph"
+                  icon={<Type className="w-4 h-4" />}
+                  active={clickedAdd === 'paragraph'}
+                  onClick={() => addContentBlock(emptyParagraph())}
+                />
+                <AddBlockButton
+                  label="Code"
+                  icon={<Code2 className="w-4 h-4" />}
+                  active={clickedAdd === 'code'}
+                  onClick={() => addContentBlock(emptyCode())}
+                />
+                <AddBlockButton
+                  label="Heading"
+                  icon={<Heading className="w-4 h-4" />}
+                  active={clickedAdd === 'heading'}
+                  onClick={() =>
+                    addContentBlock({ type: 'heading', level: 2, text: '' })
+                  }
+                />
+              </>
+            }
+          />
         </section>
 
         <button

@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import type { ContentBlock } from '../types';
+import { getHeadingClassName } from '../lib/headingStyles';
 import { CodeBlockView } from './CodeBlockView';
 import { ParagraphWithKeyPoint } from './ParagraphWithKeyPoint';
 
@@ -23,7 +24,10 @@ export function ContentRenderer({ content }: { content: ContentBlock[] }) {
         if (block.type === 'heading') {
           const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
           return (
-            <Tag key={index} className="text-foreground font-semibold mt-6 mb-2">
+            <Tag
+              key={index}
+              className={`${getHeadingClassName(block.level)} mt-6 mb-2 first:mt-0`}
+            >
               {block.text}
             </Tag>
           );
